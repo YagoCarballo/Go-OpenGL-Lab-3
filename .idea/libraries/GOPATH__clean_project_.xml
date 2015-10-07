@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="GOPATH &lt;clean_project&gt;">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.go/src/github.com" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <excluded>
+      <root url="file://$USER_HOME$/.go/src/github.com/codegangsta/cli/.git" />
+      <root url="file://$USER_HOME$/.go/src/github.com/LyricalSecurity/gigo/.git" />
+      <root url="file://$PROJECT_DIR$" />
+    </excluded>
+  </library>
+</component>
