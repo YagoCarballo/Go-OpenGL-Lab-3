@@ -22,10 +22,12 @@ var vertexPositions = []float32{
 	-0.75, -0.75, 0.0, 1.0,
 }
 
-func main() {
+func init () {
 	// Locks the Execution in the main Thread
 	runtime.LockOSThread()
+}
 
+func main() {
 	// Creates the Window Wrapper
 	glw := wrapper.NewWrapper(windowWidth, windowHeight, "Hello Graphics World")
 	glw.SetFPS(windowFPS)
@@ -36,34 +38,44 @@ func main() {
 	// Creates the Vertex Array Object
 	vertexArrayObject = createVertexArrayObject()
 
-	// Sets the Viewport
-	gl.Viewport(0, 0, int32(windowWidth), int32(windowHeight))
-
 	// Sets the Event Callbacks
 	glw.SetRenderCallback(drawLoop)
 	glw.SetKeyCallBack(keyCallback)
 	glw.SetReshapeCallback(reshape)
 
+	// Sets the Viewport (Important !!, this has to run at the end!!)
+	defer gl.Viewport(0, 0, windowWidth, windowHeight)
+
+	// Creates the Shader Program
 	shader = createShaderProgram()
 
+	// Starts the Rendering Loop
 	glw.StartLoop()
 }
 
 func move (key glfw.Key, action glfw.Action) {
 	if key == glfw.KeyUp {
-		vertexPositions[7] += 0.05
+		vertexPositions[1] += 0.05
+		vertexPositions[5] += 0.05
+		vertexPositions[9] += 0.05
 		vertexArrayObject = createVertexArrayObject()
 
 	} else if key == glfw.KeyDown {
-		vertexPositions[7] -= 0.05
+		vertexPositions[1] -= 0.05
+		vertexPositions[5] -= 0.05
+		vertexPositions[9] -= 0.05
 		vertexArrayObject = createVertexArrayObject()
 
 	} else if key == glfw.KeyLeft {
-		vertexPositions[3] += 0.05
+		vertexPositions[0] -= 0.05
+		vertexPositions[4] -= 0.05
+		vertexPositions[8] -= 0.05
 		vertexArrayObject = createVertexArrayObject()
 
 	} else if key == glfw.KeyRight {
-		vertexPositions[3] -= 0.05
+		vertexPositions[0] += 0.05
+		vertexPositions[4] += 0.05
+		vertexPositions[8] += 0.05
 		vertexArrayObject = createVertexArrayObject()
 
 	} else if key == glfw.KeySpace {
@@ -73,13 +85,35 @@ func move (key glfw.Key, action glfw.Action) {
 
 // Callbacks
 
+// Draw Loop Function
+// This function gets called on every update.
 func drawLoop (glw *wrapper.Glw) {
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	gl.BindVertexArray(vertexArrayObject)
+	// Sets the Clear Color (Background Color)
+	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
+
+	// Clears the Window
+	gl.Clear(gl.COLOR_BUFFER_BIT)
+
+	// Loads the Shader
 	gl.UseProgram(shader)
+
+	// Enables the generic vertex attribute array
+	gl.EnableVertexAttribArray(0)
+
+	// Binds the vertex array object
+	gl.BindVertexArray(vertexArrayObject)
+
+	// Draws the Vertex Array
 	gl.DrawArrays(gl.TRIANGLES, 0, 3)
+
+	// Disables the generic vertex attribute array
+	gl.DisableVertexAttribArray(0)
+
+	// Disables the Shaders
+	gl.UseProgram(0)
 }
 
+// This function gets called when a key is pressed
 func keyCallback (window *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	move(key, action)
 
@@ -134,14 +168,21 @@ func createVertexBufferObject (points []float32) uint32 {
 	return vertexBufferObject
 }
 
+// Creates the Vertex Array Object
+// Creates the buffer, then creates the vertex array, and binds the buffer to it.
 func createVertexArrayObject () uint32 {
+	// Creates the Vertex Buffer
 	var vertexBufferObject = createVertexBufferObject(vertexPositions)
 
+	// Creates the Buffer Array
 	var vertexArrayObject uint32
 	gl.GenVertexArrays(1, &vertexArrayObject)
 	gl.BindVertexArray(vertexArrayObject)
 	gl.EnableVertexAttribArray(0)
+
+	// Binds the Buffer to the Vertex Array?
 	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBufferObject)
 	gl.VertexAttribPointer(0, 4, gl.FLOAT, false, 0, nil)
+
 	return vertexArrayObject
 }

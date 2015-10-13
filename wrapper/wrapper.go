@@ -5,6 +5,7 @@ import (
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"log"
 	"fmt"
+	"runtime"
 )
 
 type Glw struct  {
@@ -21,6 +22,11 @@ type Glw struct  {
 	renderer func(glw *Glw)
 	keyCallBack glfw.KeyCallback
 	reshape glfw.FramebufferSizeCallback
+}
+
+func init () {
+	// Locks the Execution in the main Thread
+	runtime.LockOSThread()
 }
 
 // Constructor
@@ -54,14 +60,11 @@ func (glw *Glw) CreateWindow () *glfw.Window {
 	// Sets this context as the current context
 	win.MakeContextCurrent()
 
-	// Sets the Clear Color (Background Color)
-	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
-
 	// Enables Depth
-	gl.Enable(gl.DEPTH_TEST)
-	gl.DepthFunc(gl.LESS)
+//	gl.Enable(gl.DEPTH_TEST)
+//	gl.DepthFunc(gl.LESS)
 
-//	win.SetInputMode(glfw.StickyKeysMode, 1)
+	win.SetInputMode(glfw.StickyKeysMode, 1)
 
 	// Sets the Window to the Wrapper
 	glw.SetWindow(win)
@@ -75,8 +78,8 @@ func (glw *Glw) StartLoop () {
 		glw.renderer(glw)
 
 		// Maintenance
-		glfw.PollEvents()
 		glw.GetWindow().SwapBuffers()
+		glfw.PollEvents()
 	}
 }
 
@@ -89,6 +92,7 @@ func (glw *Glw) Terminate () {
 // Private Functions
 
 func setOpenGlVersion() {
+	glfw.WindowHint(glfw.Samples, 4)
 	glfw.WindowHint(glfw.ContextVersionMajor, 4)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)    // Necessary for OS X
@@ -99,8 +103,10 @@ func setOpenGlVersion() {
 }
 
 func printOpenGlVersionInfo() {
-	fmt.Printf("%s\n", gl.GoStr(gl.GetString(gl.RENDERER)))
-	fmt.Printf("%s\n", gl.GoStr(gl.GetString(gl.VERSION)))
+	version := gl.GoStr(gl.GetString(gl.VERSION))
+	renderer := gl.GoStr(gl.GetString(gl.RENDERER))
+	fmt.Println("OpenGL version", version)
+	fmt.Println("OpenGL renderer", renderer)
 }
 
 // Getters & Setters

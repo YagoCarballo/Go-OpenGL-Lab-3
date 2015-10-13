@@ -1,9 +1,11 @@
 // Minimal vertex shader
 
 #version 410
-layout(location = 0) in vec4 position;
+layout(location = 0) in vec4 pos;
+out vec4 position;
 
 void main()
 {
-	gl_Position = position;
+    position = pos;
+	gl_Position = pos;
 }
