@@ -16,11 +16,19 @@ const windowFPS = 60
 var shader uint32
 var vertexArrayObject uint32
 
+// Define vertex positions in homogeneous coordinates
 var vertexPositions = []float32{
 	0.75, 0.75, 0.0, 1.0,
 	0.75, -0.75, 0.0, 1.0,
 	-0.75, -0.75, 0.0, 1.0,
 }
+
+// Define an array of colors
+var vertexColours = []float32 {
+	1.0, 1.0, 1.0, 1.0,
+	0.0, 1.0, 0.0, 1.0,
+	0.0, 0.0, 1.0, 1.0,
+};
 
 func init () {
 	// Locks the Execution in the main Thread
@@ -99,6 +107,7 @@ func drawLoop (glw *wrapper.Glw) {
 
 	// Enables the generic vertex attribute array
 	gl.EnableVertexAttribArray(0)
+	gl.EnableVertexAttribArray(1)
 
 	// Binds the vertex array object
 	gl.BindVertexArray(vertexArrayObject)
@@ -108,6 +117,7 @@ func drawLoop (glw *wrapper.Glw) {
 
 	// Disables the generic vertex attribute array
 	gl.DisableVertexAttribArray(0)
+	gl.DisableVertexAttribArray(1)
 
 	// Disables the Shaders
 	gl.UseProgram(0)
@@ -174,15 +184,24 @@ func createVertexArrayObject () uint32 {
 	// Creates the Vertex Buffer
 	var vertexBufferObject = createVertexBufferObject(vertexPositions)
 
+	// Genrate a name for a vertex buffer object
+	var colourObject = createVertexBufferObject(vertexColours)
+
 	// Creates the Buffer Array
 	var vertexArrayObject uint32
 	gl.GenVertexArrays(1, &vertexArrayObject)
 	gl.BindVertexArray(vertexArrayObject)
-	gl.EnableVertexAttribArray(0)
 
-	// Binds the Buffer to the Vertex Array?
+	// Binds Positions Buffer to the Vertex Array?
+	gl.EnableVertexAttribArray(0)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBufferObject)
 	gl.VertexAttribPointer(0, 4, gl.FLOAT, false, 0, nil)
+
+	// Binds Color Buffer to the Vertex Array?
+	gl.EnableVertexAttribArray(1)
+	gl.BindBuffer(gl.ARRAY_BUFFER, colourObject)
+	gl.VertexAttribPointer(1, 4, gl.FLOAT, false, 0, nil)
+
 
 	return vertexArrayObject
 }

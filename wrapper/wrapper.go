@@ -97,7 +97,7 @@ func setOpenGlVersion() {
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)    // Necessary for OS X
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile) // Necessary for OS X
-	glfw.WindowHint(glfw.OpenGLDebugContext, glfw.True)
+	glfw.WindowHint(glfw.OpenGLDebugContext, glfw.False)
 
 	glfw.WindowHint(glfw.Resizable, glfw.True)
 }
