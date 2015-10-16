@@ -193,14 +193,16 @@ func createVertexArrayObject () uint32 {
 	gl.BindVertexArray(vertexArrayObject)
 
 	// Binds Positions Buffer to the Vertex Array?
-	gl.EnableVertexAttribArray(0)
+	gl.EnableVertexAttribArray(1)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBufferObject)
-	gl.VertexAttribPointer(0, 4, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(1, 4, gl.FLOAT, false, 0, nil)
+	gl.DisableVertexAttribArray(1)
 
 	// Binds Color Buffer to the Vertex Array?
-	gl.EnableVertexAttribArray(1)
+	gl.EnableVertexAttribArray(0)
 	gl.BindBuffer(gl.ARRAY_BUFFER, colourObject)
-	gl.VertexAttribPointer(1, 4, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(0, 4, gl.FLOAT, false, 0, nil)
+	gl.DisableVertexAttribArray(0)
 
 
 	return vertexArrayObject
