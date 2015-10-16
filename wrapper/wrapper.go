@@ -1,11 +1,12 @@
 package wrapper
 
 import (
-	"github.com/go-gl/gl/v4.1-core/gl"
-	"github.com/go-gl/glfw/v3.1/glfw"
+	"runtime"
 	"log"
 	"fmt"
-	"runtime"
+
+	"github.com/go-gl/gl/v4.1-core/gl"
+	"github.com/go-gl/glfw/v3.1/glfw"
 )
 
 type Glw struct  {
@@ -24,33 +25,51 @@ type Glw struct  {
 	reshape glfw.FramebufferSizeCallback
 }
 
+// This function is called by go as soon as this library is imported
 func init () {
-	// Locks the Execution in the main Thread
+	// Locks the Execution in the main Thread as OpenGL is not thread safe
 	runtime.LockOSThread()
 }
 
-// Constructor
-
+//
+// New Wrapper
+// This is the Constructor, Creates a wrapper instance and returns the pointer to it.
+//
+// @param width (int) the window width
+// @param heigh (int) the window height
+// @param title (string) the window title
+//
+// @return wrapper (*Glw) a pointer to the wrapper.
+//
 func NewWrapper(width, height int, title string) *Glw {
-	// Init GLFW
-	if err := glfw.Init(); err != nil {
-		log.Fatalln("failed to initialize glfw:", err)
-	}
-
 	return &Glw{ width, height, title, 60, true, nil, nil, nil, nil }
 }
 
 // Public Functions
 
+//
+// Create Window
+// This creates a window, initiates GL and sets the event listeners
+//
+// @return window (*glfw.Window) pointer to the window
+//
 func (glw *Glw) CreateWindow () *glfw.Window {
+	// Init GLFW
+	if err := glfw.Init(); err != nil {
+		log.Fatalln("failed to initialize glfw:", err)
+	}
+
+	// Sets the OpenGL Version
 	setOpenGlVersion()
-	defer printOpenGlVersionInfo()
 
 	// Creates the Window
 	win, err := glfw.CreateWindow(glw.Width, glw.Height, glw.Title, nil, nil)
 	if err != nil {
 		panic(err)
 	}
+
+	// Prints the OpenGL Versions at the end
+	defer printOpenGlVersionInfo()
 
 	// Initiates GL
 	if err := gl.Init(); err != nil {
@@ -61,8 +80,8 @@ func (glw *Glw) CreateWindow () *glfw.Window {
 	win.MakeContextCurrent()
 
 	// Enables Depth
-//	gl.Enable(gl.DEPTH_TEST)
-//	gl.DepthFunc(gl.LESS)
+	gl.Enable(gl.DEPTH_TEST)
+	gl.DepthFunc(gl.LESS)
 
 	win.SetInputMode(glfw.StickyKeysMode, 1)
 
@@ -71,26 +90,45 @@ func (glw *Glw) CreateWindow () *glfw.Window {
 	return win
 }
 
+//
+// Start Loop
+// this starts the event loop which runs until the program ends
+//
 func (glw *Glw) StartLoop () {
+
 	// If the Window is open keep looping
 	for !glw.GetWindow().ShouldClose() {
+
 		// Calls the Render Callback
 		glw.renderer(glw)
 
-		// Maintenance
+		// Triggers window refresh
 		glw.GetWindow().SwapBuffers()
+
+		// Triggers events
 		glfw.PollEvents()
 	}
+
+	// Called at the end of the program, and terminates the window system
+	glw.Terminate()
 }
 
+//
+// Terminate
+// When this is called, it destroys the window and terminates glfw
+//
 func (glw *Glw) Terminate () {
-	/* Clean up */
+	// Clean up
 	glw.Window.Destroy()
 	glfw.Terminate()
 }
 
 // Private Functions
 
+//
+// set OpenGl Version
+// Sets the openGL version to the window
+//
 func setOpenGlVersion() {
 	glfw.WindowHint(glfw.Samples, 4)
 	glfw.WindowHint(glfw.ContextVersionMajor, 4)
@@ -102,6 +140,10 @@ func setOpenGlVersion() {
 	glfw.WindowHint(glfw.Resizable, glfw.True)
 }
 
+//
+// print OpenGl Version Info
+// Prints the OpenGL Version to the Console
+//
 func printOpenGlVersionInfo() {
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	renderer := gl.GoStr(gl.GetString(gl.RENDERER))
