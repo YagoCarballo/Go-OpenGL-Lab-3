@@ -177,13 +177,13 @@ func InitApp(glw *wrapper.Glw) {
 	// Create a vertex buffer object to store vertices
 	gl.GenBuffers(1, &positionBufferObject);
 	gl.BindBuffer(gl.ARRAY_BUFFER, positionBufferObject);
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertexPositions), gl.Ptr(vertexPositions), gl.STATIC_DRAW);
+	gl.BufferData(gl.ARRAY_BUFFER, len(vertexPositions) * 4, gl.Ptr(vertexPositions), gl.STATIC_DRAW);
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0);
 
 	// Create a vertex buffer object to store vertex colours
 	gl.GenBuffers(1, &colourObject);
 	gl.BindBuffer(gl.ARRAY_BUFFER, colourObject);
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertexColours), gl.Ptr(vertexColours), gl.STATIC_DRAW);
+	gl.BufferData(gl.ARRAY_BUFFER, len(vertexColours) * 4, gl.Ptr(vertexColours), gl.STATIC_DRAW);
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0);
 
 	// Creates the Shader Program
