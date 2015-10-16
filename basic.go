@@ -20,6 +20,8 @@ var vertexArrayObject uint32
 // Position and view globals
 var angle_x, angle_x_inc float64
 var angle_y, angle_y_inc float64
+var angle_z, angle_z_inc float64
+var scale float32 = 1.0
 
 // Uniforms
 var modelID int32
@@ -236,9 +238,11 @@ func drawLoop (glw *wrapper.Glw) {
 	// Rotates the model
 	modelX := mgl32.HomogRotate3D(float32(angle_y), mgl32.Vec3{1, 0, 0})
 	modelY := mgl32.HomogRotate3D(float32(angle_x), mgl32.Vec3{0, 1, 0})
+	modelZ := mgl32.HomogRotate3D(float32(angle_z), mgl32.Vec3{0, 0, 1})
+	modelScale := mgl32.Scale3D(scale, scale, scale)
 
 	// Multiplies both cubes to apply both rotations
-	model = modelX.Mul4(modelY)
+	model = modelX.Mul4(modelY).Mul4(modelZ).Mul4(modelScale)
 
 	// Send our transformations to the currently bound shader
 	gl.UniformMatrix4fv(modelID, 1, false, &model[0])
@@ -254,6 +258,7 @@ func drawLoop (glw *wrapper.Glw) {
 	// Modify our animation variables
 	angle_x += angle_x_inc;
 	angle_y += angle_y_inc;
+	angle_z += angle_z_inc;
 }
 
 //
@@ -295,6 +300,26 @@ func keyCallback (window *glfw.Window, key glfw.Key, scancode int, action glfw.A
 	// If the Key D is pressed, it rotates to the Right
 	if key == glfw.KeyD || key == glfw.KeyRight {
 		angle_x_inc += 0.1
+	}
+
+	// If the Key Q is pressed, it rotates to the Back
+	if key == glfw.KeyQ {
+		angle_z_inc -= 0.1
+	}
+
+	// If the Key E is pressed, it rotates to the Front
+	if key == glfw.KeyE {
+		angle_z_inc += 0.1
+	}
+
+	// If the Key Z is pressed, it Scales Out
+	if key == glfw.KeyZ {
+		scale -= 0.5
+	}
+
+	// If the Key X is pressed, it Scales In
+	if key == glfw.KeyX {
+		scale += 0.5
 	}
 }
 
