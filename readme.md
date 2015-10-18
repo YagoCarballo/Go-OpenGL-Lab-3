@@ -49,6 +49,19 @@ go build -o dist/basic basic.go
 
 ```
 
+> Important: To open the Binary, you need to be in the root of the project (or have the shaders folder in the same folder)
+> - If the shaders folder is not in the same path the program will break when running.
+>
+> ```bash
+> 
+> ## from the project's root run, to open the app
+> $ dist/basic
+>
+> ```
+
+> If the terminal is closed next time is opened the `GOPATH` variable needs to be set again with `export GOPATH=`pwd`/go_modules`
+
+
 ### Windows
 
 #### Requirements
@@ -137,4 +150,21 @@ go build -o dist/basic.exe basic.go
 
 ```
 
-> Is the terminal is closed next time is opened the `GOPATH` variable needs to be set again with `set GOPATH=<path-to-the-project>/go_modules`
+> Important: To open the Binary, you need to be in the root of the project (or have the shaders folder in the same folder)
+> - If the shaders folder is not in the same path the program will break when running.
+>
+> ```bash
+> 
+> ## Copy the shaders folder to dist (select `D` when asked)
+> xcopy shaders "dist/shaders" 
+> 
+> ## Move to the `dist` folder
+> cd dist
+> 
+> ## Run the App
+> basic.exe
+>
+> ```
+
+> If the terminal is closed next time is opened the `GOPATH` variable needs to be set again with `set GOPATH=<path-to-the-project>/go_modules`
+
