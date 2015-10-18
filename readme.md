@@ -129,6 +129,9 @@ go get github.com/go-gl/glfw/v3.1/glfw
 ## Gets the MGL32 Math Library
 go get github.com/go-gl/mathgl/mgl32
 
+## This library is used to find the path where the executable is when running a compiled version
+go get github.com/kardianos/osext
+
 ```
 
 - If all the above steps worked without errors continue to step 9

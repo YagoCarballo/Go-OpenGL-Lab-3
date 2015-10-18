@@ -4,6 +4,7 @@ import (
 	"strings"
 	"io/ioutil"
 	"github.com/go-gl/gl/all-core/gl"
+	"github.com/kardianos/osext"
 )
 
 //
@@ -18,6 +19,22 @@ import (
 //
 func ReadFile (path string) (string, error) {
 	fileContents, err := ioutil.ReadFile(path)
+	if err != nil {
+		// If the file is missing, try to open it in the same folder as the current executable
+		missing := strings.Contains(err.Error(), "no such file or directory")
+		if missing {
+			// Get the Folder of the current Executable
+			dir, err := osext.ExecutableFolder()
+			if err != nil {
+				panic(err)
+			}
+
+			// Read the file and return content or error
+			content, secondErr := ioutil.ReadFile(fmt.Sprintf("%s/%s", dir, path))
+			return string(content) + "\x00", secondErr
+		}
+	}
+
 	return string(fileContents) + "\x00", err
 }
 
