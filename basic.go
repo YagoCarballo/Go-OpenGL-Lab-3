@@ -21,12 +21,15 @@ var vertexArrayObject uint32
 var angle_x, angle_x_inc float64
 var angle_y, angle_y_inc float64
 var angle_z, angle_z_inc float64
+
+var camera_x, camera_y, camera_z float64
+
 var scale float32 = 1.0
 
 // Uniforms
-var modelID int32
+var modelUniform, cameraUniform int32
 
-var model mgl32.Mat4
+var model, camera mgl32.Mat4
 
 // Define vertices for a cube in 12 triangles
 var vertexPositions = []float32{
@@ -165,8 +168,22 @@ func main() {
 // @param wrapper (*wrapper.Glw) the window wrapper
 //
 func InitApp(glw *wrapper.Glw) {
-	angle_x = 0;
-	angle_x_inc = 0;
+	// Initializes the X angles
+	angle_x = 0.0;
+	angle_x_inc = 0.0;
+
+	// Initializes the Y angles
+	angle_y = 0.0;
+	angle_y_inc = 0.1;
+
+	// Initializes the Z angles
+	angle_z = 0;
+	angle_z_inc = 0.0;
+
+	// Initializes the Camera angles
+	camera_x = 0.1
+	camera_y = 0.1
+	camera_z = 0.0
 
 	// Initializes a model in the start position
 	model = mgl32.Ident4()
@@ -198,7 +215,11 @@ func InitApp(glw *wrapper.Glw) {
 	}
 
 	// Define uniforms to send to vertex shader
-	modelID = gl.GetUniformLocation(shaderProgram, gl.Str("model\x00"));
+	modelUniform = gl.GetUniformLocation(shaderProgram, gl.Str("model\x00"));
+	cameraUniform = gl.GetUniformLocation(shaderProgram, gl.Str("camera\x00"))
+
+	// Sets the Initial Camera position
+	camera = mgl32.LookAtV(mgl32.Vec3{0.1, 0.1, 0}, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -245,7 +266,8 @@ func drawLoop (glw *wrapper.Glw) {
 	model = modelX.Mul4(modelY).Mul4(modelZ).Mul4(modelScale)
 
 	// Send our transformations to the currently bound shader
-	gl.UniformMatrix4fv(modelID, 1, false, &model[0])
+	gl.UniformMatrix4fv(cameraUniform, 1, false, &camera[0])
+	gl.UniformMatrix4fv(modelUniform, 1, false, &model[0])
 
 	// Draws the Cube
 	gl.DrawArrays(gl.TRIANGLES, 0, 36)
@@ -320,6 +342,50 @@ func keyCallback (window *glfw.Window, key glfw.Key, scancode int, action glfw.A
 	// If the Key X is pressed, it Scales In
 	if key == glfw.KeyX {
 		scale += 0.5
+	}
+
+	cameraMoved := false
+
+	// If the Key Z is pressed, it Moves Camera to the Left
+	if key == glfw.KeyZ {
+		camera_x += 0.1
+		cameraMoved = true
+	}
+
+	// If the Key X is pressed, it Moves Camera to the Right
+	if key == glfw.KeyX {
+		camera_x -= 0.1
+		cameraMoved = true
+	}
+
+	// If the Key C is pressed, it Moves Camera Up
+	if key == glfw.KeyC {
+		camera_y += 0.1
+		cameraMoved = true
+	}
+
+	// If the Key V is pressed, it Moves Camera Down
+	if key == glfw.KeyV {
+		camera_y -= 0.1
+		cameraMoved = true
+	}
+
+	// If the Key B is pressed, it Moves Camera to the Back
+	if key == glfw.KeyB {
+		camera_z += 0.1
+		cameraMoved = true
+	}
+
+	// If the Key N is pressed, it Moves Camera to the Front
+	if key == glfw.KeyN {
+		camera_z -= 0.1
+		cameraMoved = true
+	}
+
+	if cameraMoved {
+		// Aplies the camera movements
+		cameraEye := mgl32.Vec3{float32(camera_x), float32(camera_y), float32(camera_z)}
+		camera = mgl32.LookAtV(cameraEye, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
 	}
 }
 
