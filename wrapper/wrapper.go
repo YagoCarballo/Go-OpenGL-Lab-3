@@ -5,7 +5,7 @@ import (
 	"log"
 	"fmt"
 
-	"github.com/go-gl/gl/v4.1-core/gl"
+	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
 
@@ -71,13 +71,13 @@ func (glw *Glw) CreateWindow () *glfw.Window {
 	// Prints the OpenGL Versions at the end
 	defer printOpenGlVersionInfo()
 
+	// Sets this context as the current context
+	win.MakeContextCurrent()
+
 	// Initiates GL
 	if err := gl.Init(); err != nil {
 		panic(err)
 	}
-
-	// Sets this context as the current context
-	win.MakeContextCurrent()
 
 	// Enables Depth
 	gl.Enable(gl.DEPTH_TEST)
@@ -131,8 +131,8 @@ func (glw *Glw) Terminate () {
 //
 func setOpenGlVersion() {
 	glfw.WindowHint(glfw.Samples, 4)
-	glfw.WindowHint(glfw.ContextVersionMajor, 4)
-	glfw.WindowHint(glfw.ContextVersionMinor, 1)
+	glfw.WindowHint(glfw.ContextVersionMajor, 3)
+	glfw.WindowHint(glfw.ContextVersionMinor, 2)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)    // Necessary for OS X
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile) // Necessary for OS X
 	glfw.WindowHint(glfw.OpenGLDebugContext, glfw.False)
@@ -147,8 +147,10 @@ func setOpenGlVersion() {
 func printOpenGlVersionInfo() {
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	renderer := gl.GoStr(gl.GetString(gl.RENDERER))
+	shaderVersion := gl.GoStr(gl.GetString(gl.SHADING_LANGUAGE_VERSION))
 	fmt.Println("OpenGL version", version)
 	fmt.Println("OpenGL renderer", renderer)
+	fmt.Println("Max supported shader language version", shaderVersion)
 }
 
 // Getters & Setters

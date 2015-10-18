@@ -84,7 +84,7 @@ go build -o dist/basic basic.go
 
 **Step 3**
 
-Install TDM-GCC from [http://tdm-gcc.tdragon.net/](http://tdm-gcc.tdragon.net/) (Use the default settings)
+Install TDM-GCC from [http://tdm-gcc.tdragon.net/](http://tdm-gcc.tdragon.net/) (Choose the x64 and x86 version, for the rest use the default settings)
 
 > TDM-GCC is the recommended GCC compiler for Go in windows (is the only one that is officially supported by the Go Team)
 
@@ -121,8 +121,7 @@ set GOPATH=<path-to-the-project>/go_modules
 ```bash
 
 ## Gets the OpenGL Versions Used by this project
-go get github.com/go-gl/gl/v4.1-core/gl
-go get github.com/go-gl/gl/v4.1-compatibility/gl
+go get github.com/go-gl/gl/all-core/gl
 
 ## Gets the GLFW Window Wrapper
 go get github.com/go-gl/glfw/v3.1/glfw
