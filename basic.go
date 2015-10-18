@@ -27,9 +27,9 @@ var camera_x, camera_y, camera_z float64
 var scale float32 = 1.0
 
 // Uniforms
-var modelUniform, cameraUniform int32
+var modelUniform, projectionUniform, cameraUniform int32
 
-var model, camera mgl32.Mat4
+var model, projection, camera mgl32.Mat4
 
 // Define vertices for a cube in 12 triangles
 var vertexPositions = []float32{
@@ -183,7 +183,7 @@ func InitApp(glw *wrapper.Glw) {
 	// Initializes the Camera angles
 	camera_x = 0.1
 	camera_y = 0.1
-	camera_z = 0.0
+	camera_z = 3.5
 
 	// Initializes a model in the start position
 	model = mgl32.Ident4()
@@ -216,10 +216,15 @@ func InitApp(glw *wrapper.Glw) {
 
 	// Define uniforms to send to vertex shader
 	modelUniform = gl.GetUniformLocation(shaderProgram, gl.Str("model\x00"));
+	projectionUniform = gl.GetUniformLocation(shaderProgram, gl.Str("projection\x00"))
 	cameraUniform = gl.GetUniformLocation(shaderProgram, gl.Str("camera\x00"))
 
+	// Sets the Initial Projection Position
+	projection = mgl32.Perspective(mgl32.DegToRad(45.0), float32(windowWidth)/windowHeight, 0.1, 10.0)
+
 	// Sets the Initial Camera position
-	camera = mgl32.LookAtV(mgl32.Vec3{0.1, 0.1, 0}, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
+	cameraEye := mgl32.Vec3{float32(camera_x), float32(camera_y), float32(camera_z)}
+	camera = mgl32.LookAtV(cameraEye, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -266,6 +271,7 @@ func drawLoop (glw *wrapper.Glw) {
 	model = modelX.Mul4(modelY).Mul4(modelZ).Mul4(modelScale)
 
 	// Send our transformations to the currently bound shader
+	gl.UniformMatrix4fv(projectionUniform, 1, false, &projection[0])
 	gl.UniformMatrix4fv(cameraUniform, 1, false, &camera[0])
 	gl.UniformMatrix4fv(modelUniform, 1, false, &model[0])
 
