@@ -132,7 +132,7 @@ func (glw *Glw) Terminate () {
 func setOpenGlVersion() {
 	glfw.WindowHint(glfw.Samples, 4)
 	glfw.WindowHint(glfw.ContextVersionMajor, 3)
-	glfw.WindowHint(glfw.ContextVersionMinor, 2)
+	glfw.WindowHint(glfw.ContextVersionMinor, 3)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)    // Necessary for OS X
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile) // Necessary for OS X
 	glfw.WindowHint(glfw.OpenGLDebugContext, glfw.False)
