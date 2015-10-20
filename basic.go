@@ -278,6 +278,23 @@ func drawLoop (glw *wrapper.Glw) {
 	// Draws the Cube
 	gl.DrawArrays(gl.TRIANGLES, 0, 36)
 
+	// A bunch more cubes
+	modelOne := model.Mul4(mgl32.Translate3D(0.5, 0.0, 0.0))
+	gl.UniformMatrix4fv(modelUniform, 1, false, &modelOne[0])
+	gl.DrawArrays(gl.TRIANGLES, 0, 36)
+
+	modelTwo := model.Mul4(mgl32.Translate3D(0.0, 0.0, 0.5))
+	gl.UniformMatrix4fv(modelUniform, 1, false, &modelTwo[0])
+	gl.DrawArrays(gl.TRIANGLES, 0, 36)
+
+	modelThree := model.Mul4(mgl32.Translate3D(-0.5, 0.0, 0.0))
+	gl.UniformMatrix4fv(modelUniform, 1, false, &modelThree[0])
+	gl.DrawArrays(gl.TRIANGLES, 0, 36)
+
+	modelFour := model.Mul4(mgl32.Translate3D(0.0, 0.0, -0.5))
+	gl.UniformMatrix4fv(modelUniform, 1, false, &modelFour[0])
+	gl.DrawArrays(gl.TRIANGLES, 0, 36)
+
 	gl.DisableVertexAttribArray(0);
 
 	// Disables the Shaders
