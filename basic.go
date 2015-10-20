@@ -322,87 +322,96 @@ func keyCallback (window *glfw.Window, key glfw.Key, scancode int, action glfw.A
 		return;
 	}
 
-	// If the Key Excape is pressed, it closes the App
-	if key == glfw.KeyEscape && action == glfw.Press {
-		window.SetShouldClose(true)
-	}
-
-	// If the Key W is pressed, it rotates up
-	if key == glfw.KeyW || key == glfw.KeyUp {
-		angle_y_inc += 0.1
-	}
-
-	// If the Key Q is pressed, it rotates down
-	if key == glfw.KeyS || key == glfw.KeyDown {
-		angle_y_inc -= 0.1
-	}
-
-	// If the Key A is pressed, it rotates to the Left
-	if key == glfw.KeyA || key == glfw.KeyLeft {
-		angle_x_inc -= 0.1
-	}
-
-	// If the Key D is pressed, it rotates to the Right
-	if key == glfw.KeyD || key == glfw.KeyRight {
-		angle_x_inc += 0.1
-	}
-
-	// If the Key Q is pressed, it rotates to the Back
-	if key == glfw.KeyQ {
-		angle_z_inc -= 0.1
-	}
-
-	// If the Key E is pressed, it rotates to the Front
-	if key == glfw.KeyE {
-		angle_z_inc += 0.1
-	}
-
-	// If the Key Z is pressed, it Scales Out
-	if key == glfw.KeyZ {
-		scale -= 0.5
-	}
-
-	// If the Key X is pressed, it Scales In
-	if key == glfw.KeyX {
-		scale += 0.5
-	}
-
+	// Sets the camera as not moved
 	cameraMoved := false
 
+	switch key {
+	// If the Key Excape is pressed, it closes the App
+	case glfw.KeyEscape:
+		if glfw.Press {
+			window.SetShouldClose(true)
+		}
+		break
+
+	// If the Key W is pressed, it rotates up
+	case glfw.KeyW:
+	case glfw.KeyUp:
+		angle_y_inc += 0.1
+		break
+
+	// If the Key Q is pressed, it rotates down
+	case glfw.KeyS:
+	case glfw.KeyDown:
+		angle_y_inc -= 0.1
+		break
+
+	// If the Key A is pressed, it rotates to the Left
+	case glfw.KeyA:
+	case glfw.KeyLeft:
+		angle_x_inc += 0.1
+		break
+
+	// If the Key D is pressed, it rotates to the Right
+	case glfw.KeyD:
+	case glfw.KeyRight:
+		angle_x_inc -= 0.1
+		break
+
+	// If the Key Q is pressed, it rotates to the Back
+	case glfw.KeyA:
+		angle_x_inc -= 0.1
+		break
+
+	// If the Key E is pressed, it rotates to the Front
+	case glfw.KeyE:
+		angle_x_inc += 0.1
+		break
+
+	// If the Key Z is pressed, it Scales Out
+	case glfw.KeyZ:
+		scale += 0.1
+		break
+
+	// If the Key X is pressed, it Scales In
+	case glfw.KeyX:
+		scale -= 0.1
+		break
+
 	// If the Key Z is pressed, it Moves Camera to the Left
-	if key == glfw.KeyZ {
+	case glfw.KeyZ:
 		camera_x += 0.1
 		cameraMoved = true
-	}
+		break
 
-	// If the Key X is pressed, it Moves Camera to the Right
-	if key == glfw.KeyX {
+	// If the Key X is pressed, it Moves Camera to the Left
+	case glfw.KeyX:
 		camera_x -= 0.1
 		cameraMoved = true
-	}
+		break
 
 	// If the Key C is pressed, it Moves Camera Up
-	if key == glfw.KeyC {
-		camera_y += 0.1
-		cameraMoved = true
-	}
-
-	// If the Key V is pressed, it Moves Camera Down
-	if key == glfw.KeyV {
+	case glfw.KeyC:
 		camera_y -= 0.1
 		cameraMoved = true
-	}
+		break
+
+	// If the Key V is pressed, it Moves Camera Down
+	case glfw.KeyV:
+		camera_y += 0.1
+		cameraMoved = true
+		break
 
 	// If the Key B is pressed, it Moves Camera to the Back
-	if key == glfw.KeyB {
-		camera_z += 0.1
-		cameraMoved = true
-	}
-
-	// If the Key N is pressed, it Moves Camera to the Front
-	if key == glfw.KeyN {
+	case glfw.KeyB:
 		camera_z -= 0.1
 		cameraMoved = true
+		break
+
+	// If the Key N is pressed, it Moves Camera to the Front
+	case glfw.KeyN:
+		camera_z += 0.1
+		cameraMoved = true
+		break
 	}
 
 	if cameraMoved {
