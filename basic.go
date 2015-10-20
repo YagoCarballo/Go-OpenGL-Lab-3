@@ -328,7 +328,7 @@ func keyCallback (window *glfw.Window, key glfw.Key, scancode int, action glfw.A
 	switch key {
 	// If the Key Excape is pressed, it closes the App
 	case glfw.KeyEscape:
-		if glfw.Press {
+		if action == glfw.Press {
 			window.SetShouldClose(true)
 		}
 		break
@@ -358,7 +358,7 @@ func keyCallback (window *glfw.Window, key glfw.Key, scancode int, action glfw.A
 		break
 
 	// If the Key Q is pressed, it rotates to the Back
-	case glfw.KeyA:
+	case glfw.KeyQ:
 		angle_x_inc -= 0.1
 		break
 
@@ -375,18 +375,6 @@ func keyCallback (window *glfw.Window, key glfw.Key, scancode int, action glfw.A
 	// If the Key X is pressed, it Scales In
 	case glfw.KeyX:
 		scale -= 0.1
-		break
-
-	// If the Key Z is pressed, it Moves Camera to the Left
-	case glfw.KeyZ:
-		camera_x += 0.1
-		cameraMoved = true
-		break
-
-	// If the Key X is pressed, it Moves Camera to the Left
-	case glfw.KeyX:
-		camera_x -= 0.1
-		cameraMoved = true
 		break
 
 	// If the Key C is pressed, it Moves Camera Up
