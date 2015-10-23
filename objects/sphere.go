@@ -15,14 +15,14 @@ type Sphere struct {
 	elementBuffer                                    uint32
 
 	DrawMode                                         DrawMode // Defines drawing mode of sphere as points, lines or filled polygons
-	numLats, numLongs                                int      //Define the resolution of the sphere object
+	numLats, numLongs                                uint32      //Define the resolution of the sphere object
 
-	numSphereVertices                                int
+	numSphereVertices                                uint32
 
 	Model                                            mgl32.Mat4
 }
 
-func NewSphere(numLats, numLongs int) *Sphere {
+func NewSphere(numLats, numLongs uint32) *Sphere {
 	return &Sphere{
 		0, 0, 0, // sphereBufferObject, sphereNormals, sphereColours
 		0, // elementBuffer
@@ -36,13 +36,15 @@ func NewSphere(numLats, numLongs int) *Sphere {
 // Make a sphere from two triangle fans (one at each pole) and triangle strips along latitudes
 // This version uses indexed vertex buffers for both the fans at the poles and the latitude strips
 func (sphere *Sphere) MakeSphereVBO() {
+	var i uint32
+
 	// Calculate the number of vertices required in sphere
 	sphere.numSphereVertices = 2 + ((sphere.numLats - 1) * sphere.numLongs)
 	pColours := make([]float32, (sphere.numSphereVertices * 4))
 	pVertices, pNormals := sphere.MakeUnitSphere()
 
 	// Define colours as the x,y,z components of the sphere vertices
-	for i := 0; i < sphere.numSphereVertices; i++ {
+	for i = 0; i < sphere.numSphereVertices; i++ {
 		pColours[i * 4] = pVertices[i * 3]
 		pColours[i * 4 + 1] = pVertices[i * 3 + 1]
 		pColours[i * 4 + 2] = pVertices[i * 3 + 2]
@@ -52,30 +54,30 @@ func (sphere *Sphere) MakeSphereVBO() {
 	/* Generate the vertex buffer object */
 	gl.GenBuffers(1, &sphere.sphereBufferObject)
 	gl.BindBuffer(gl.ARRAY_BUFFER, sphere.sphereBufferObject)
-	gl.BufferData(gl.ARRAY_BUFFER, 4 * sphere.numSphereVertices * 3, gl.Ptr(pVertices), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, int(4 * sphere.numSphereVertices * 3), gl.Ptr(pVertices), gl.STATIC_DRAW)
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 
 	/* Store the normals in a buffer object */
 	gl.GenBuffers(1, &sphere.sphereNormals)
 	gl.BindBuffer(gl.ARRAY_BUFFER, sphere.sphereNormals)
-	gl.BufferData(gl.ARRAY_BUFFER, 4 * sphere.numSphereVertices * 3, gl.Ptr(pNormals), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, int(4 * sphere.numSphereVertices * 3), gl.Ptr(pNormals), gl.STATIC_DRAW)
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 
 	/* Store the colours in a buffer object */
 	gl.GenBuffers(1, &sphere.sphereColours)
 	gl.BindBuffer(gl.ARRAY_BUFFER, sphere.sphereColours)
-	gl.BufferData(gl.ARRAY_BUFFER, 4 * sphere.numSphereVertices * 4, gl.Ptr(pColours), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, int(4 * sphere.numSphereVertices * 4), gl.Ptr(pColours), gl.STATIC_DRAW)
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 
 	/* Calculate the number of indices in our index array and allocate memory for it */
 	numIndices := ((sphere.numLongs * 2) + 2) * (sphere.numLats - 1) + ((sphere.numLongs + 2) * 2)
-	pIndices := make([]int, numIndices)
+	pIndices := make([]uint32, numIndices)
 
 	// fill "indices" to define triangle strips
 	var index int = 0 // Current index
 
 	// Define indices for the first triangle fan for one pole
-	for i := 0; i < sphere.numLongs + 1; i++ {
+	for i = 0; i < sphere.numLongs + 1; i++ {
 		pIndices[index] = i
 		index++
 	}
@@ -83,9 +85,10 @@ func (sphere *Sphere) MakeSphereVBO() {
 	pIndices[index] = 1    // Join last triangle in the triangle fan
 	index++
 
-	var start int = 1        // Start index for each latitude row
-	for j := 0; j < sphere.numLats - 2; j++ {
-		for i := 0; i < sphere.numLongs; i++ {
+	var j uint32
+	var start uint32 = 1        // Start index for each latitude row
+	for j = 0; j < sphere.numLats - 2; j++ {
+		for i = 0; i < sphere.numLongs; i++ {
 			pIndices[index] = start + i
 			index++
 
@@ -105,7 +108,7 @@ func (sphere *Sphere) MakeSphereVBO() {
 	}
 
 	// Define indices for the last triangle fan for the south pole region
-	for i := sphere.numSphereVertices - 1; i > (sphere.numSphereVertices - sphere.numLongs - 2); i-- {
+	for i = sphere.numSphereVertices - 1; i > sphere.numSphereVertices - sphere.numLongs - 2; i-- {
 		pIndices[index] = i
 		index++
 	}
@@ -115,7 +118,7 @@ func (sphere *Sphere) MakeSphereVBO() {
 	// Generate a buffer for the indices
 	gl.GenBuffers(1, &sphere.elementBuffer)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, sphere.elementBuffer)
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, numIndices * 4, gl.Ptr(pIndices), gl.STATIC_DRAW)
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, int(numIndices * 4), gl.Ptr(pIndices), gl.STATIC_DRAW)
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 }
 
@@ -195,21 +198,23 @@ func (sphere *Sphere) DrawSphere() {
 		gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, sphere.elementBuffer)
 
 		/* Draw the north pole regions as a triangle  */
-		gl.DrawElements(gl.TRIANGLE_FAN, int32(sphere.numLongs) + 2, gl.UNSIGNED_INT, gl.Ptr(nil))
+		gl.DrawElements(gl.TRIANGLE_STRIP, int32(sphere.numLongs + 1000), gl.UNSIGNED_INT, nil)
 
 		/* Calculate offsets into the indexed array. Note that we multiply offsets by 4
 		   because it is a memory offset the indices are type GLuint which is 4-bytes */
-		lat_offset_jump := (sphere.numLongs * 2) + 2
-		lat_offset_start := sphere.numLongs + 2
-		lat_offset_current := lat_offset_start * 4
+		var lat_offset_jump uint32 = uint32((sphere.numLongs * 2) + 2)
+		var lat_offset_start uint32 = uint32(sphere.numLongs + 2)
+		var lat_offset_current uint32 = lat_offset_start * 4
+
+		var i uint32
 
 		/* Draw the triangle strips of latitudes */
-		for i := 0; i < sphere.numLats - 2; i++ {
-			gl.DrawElements(gl.TRIANGLE_STRIP, int32(sphere.numLongs) * 2 + 2, gl.UNSIGNED_INT, gl.Ptr(&lat_offset_current))
+		for i = 0; i < sphere.numLats - 2; i++ {
+			gl.DrawElements(gl.TRIANGLE_STRIP, int32(sphere.numLongs * 2 + 1000), gl.UNSIGNED_INT, gl.Ptr(&lat_offset_current))
 			lat_offset_current += (lat_offset_jump * 4)
 		}
 		/* Draw the south pole as a triangle fan */
-		gl.DrawElements(gl.TRIANGLE_FAN, int32(sphere.numLongs) + 2, gl.UNSIGNED_INT, gl.Ptr(&lat_offset_current))
+		gl.DrawElements(gl.TRIANGLE_STRIP, int32(sphere.numLongs + 1000), gl.UNSIGNED_INT, gl.Ptr(&lat_offset_current))
 	}
 }
 

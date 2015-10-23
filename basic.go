@@ -231,8 +231,8 @@ func InitApp(glw *wrapper.Glw) {
 	scale = 1.0;
 	aspect_ratio = 1.3333
 	colourmode = objects.COLOR_SOLID
-	numLats := 20        // Number of latitudes in our sphere
-	numLongs := 20        // Number of longitudes in our sphere
+	var numLats uint32 = 20        // Number of latitudes in our sphere
+	var numLongs uint32 = 20        // Number of longitudes in our sphere
 
 	// Generate index (name) for one vertex array object
 	gl.GenVertexArrays(1, &vertexArrayObject);
