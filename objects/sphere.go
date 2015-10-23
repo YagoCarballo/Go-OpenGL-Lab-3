@@ -38,9 +38,8 @@ func NewSphere(numLats, numLongs int) *Sphere {
 func (sphere *Sphere) MakeSphereVBO() {
 	// Calculate the number of vertices required in sphere
 	sphere.numSphereVertices = 2 + ((sphere.numLats - 1) * sphere.numLongs)
-	pVertices := make([]float64, (sphere.numSphereVertices * 3))
-	pColours := make([]float64, (sphere.numSphereVertices * 4))
-	sphere.MakeUnitSphere(pVertices)
+	pColours := make([]float32, (sphere.numSphereVertices * 4))
+	pVertices, pNormals := sphere.MakeUnitSphere()
 
 	// Define colours as the x,y,z components of the sphere vertices
 	for i := 0; i < sphere.numSphereVertices; i++ {
@@ -59,7 +58,7 @@ func (sphere *Sphere) MakeSphereVBO() {
 	/* Store the normals in a buffer object */
 	gl.GenBuffers(1, &sphere.sphereNormals)
 	gl.BindBuffer(gl.ARRAY_BUFFER, sphere.sphereNormals)
-	gl.BufferData(gl.ARRAY_BUFFER, 4 * sphere.numSphereVertices * 3, gl.Ptr(pVertices), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, 4 * sphere.numSphereVertices * 3, gl.Ptr(pNormals), gl.STATIC_DRAW)
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 
 	/* Store the colours in a buffer object */
@@ -121,40 +120,46 @@ func (sphere *Sphere) MakeSphereVBO() {
 }
 
 // Define the vertex positions for a sphere. The array of vertices must have previosuly been created.
-func (sphere *Sphere) MakeUnitSphere(pVertices []float64) {
-		var vnum int32 = 0
-		var x, y, z, lat_radians, lon_radians float64
+func (sphere *Sphere) MakeUnitSphere() ([]float32, []float32) {
+	var vnum int32 = 0
+	var x, y, z, lat_radians, lon_radians float32
+	var lat, lon float32
 
-		// Define north pole
-		pVertices[0] = 0
-		pVertices[1] = 0
-		pVertices[2] = 1.0
-		vnum++
+	pVertices := make([]float32, (sphere.numSphereVertices * 3))
 
-		latstep := 180.0 / float64(sphere.numLats)
-		longstep := 360.0 / float64(sphere.numLongs)
+	// Define north pole
+	pVertices[0] = 0
+	pVertices[1] = 0
+	pVertices[2] = 1.0
+	vnum++
 
-		/* Define vertices along latitude lines */
-		for lat := 90.0 - latstep; lat > -90.0; lat -= latstep {
-			lat_radians = lat * DEG_TO_RADIANS
-			for lon := -180.0; lon < 180.0; lon += longstep {
-				lon_radians = lon * DEG_TO_RADIANS
+	latStep := 180.0 / float32(sphere.numLats)
+	longStep := 360.0 / float32(sphere.numLongs)
 
-				x = math.Cos(lat_radians) * math.Cos(lon_radians)
-				y = math.Cos(lat_radians) * math.Sin(lon_radians)
-				z = math.Sin(lat_radians)
+	/* Define vertices along latitude lines */
+	for lat = 90.0 - latStep; lat > -90.0; lat -= latStep {
+		lat_radians = lat * DEG_TO_RADIANS
+		for lon = -180.0; lon < 180.0; lon += longStep {
+			lon_radians = lon * DEG_TO_RADIANS
 
-				/* Define the vertex */
-				pVertices[vnum * 3] = x
-				pVertices[vnum * 3 + 1] = y
-				pVertices[vnum * 3 + 2] = z
-				vnum++
-			}
+			x = float32(math.Cos(float64(lat_radians)) * math.Cos(float64(lon_radians)))
+			y = float32(math.Cos(float64(lat_radians)) * math.Sin(float64(lon_radians)))
+			z = float32(math.Sin(float64(lat_radians)))
+
+			/* Define the vertex */
+			pVertices[vnum * 3] = x
+			pVertices[vnum * 3 + 1] = y
+			pVertices[vnum * 3 + 2] = z
+			vnum++
 		}
-		/* Define south pole */
-		pVertices[vnum * 3] = 0
-		pVertices[vnum * 3 + 1] = 0
-		pVertices[vnum * 3 + 2] = -1.0
+	}
+
+	/* Define south pole */
+	pVertices[vnum * 3] = 0
+	pVertices[vnum * 3 + 1] = 0
+	pVertices[vnum * 3 + 2] = -1.0
+
+	return pVertices, pVertices
 }
 
 // Draws the sphere form the previously defined vertex and index buffers
