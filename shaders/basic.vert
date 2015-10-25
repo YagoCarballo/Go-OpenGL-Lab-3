@@ -1,17 +1,32 @@
 // Minimal vertex shader
 
 #version 330
-layout(location = 0) in vec4 position;
+
+// These are the vertex attributes
+layout(location = 0) in vec3 position;
 layout(location = 1) in vec4 colour;
+layout(location = 2) in vec3 normal;
+
+// Uniform variables are passed in from the application
+uniform mat4 model, view, projection;
+uniform uint colourmode;
+
+// Output the vertex colour - to be rasterized into pixel fragments
 out vec4 fcolour;
-uniform mat4 model;
-uniform mat4 projection;
-uniform mat4 camera;
 
 void main()
 {
-	gl_Position = projection * camera * model * position;
+	vec4 diffuse_colour;
+	vec4 position_h = vec4(position, 1.0);
 
-	fcolour = colour;
-//	fcolour = position * 2.0 + vec4(0.5, 0.5, 0.5, 1.0);
+	if (colourmode == uint(1))
+		diffuse_colour = colour;
+	else
+		diffuse_colour = vec4(0.0, 1.0, 0, 1.0);
+
+	// Define the vertex colour
+	fcolour = diffuse_colour;
+
+	// Define the vertex position
+	gl_Position = (projection * view * model) * position_h;
 }

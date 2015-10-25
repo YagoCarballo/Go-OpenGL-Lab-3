@@ -1,8 +1,10 @@
 package main
 import (
+	"fmt"
 	"runtime"
 
 	"./wrapper"
+	"./objects"
 
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
@@ -13,77 +15,85 @@ const windowWidth = 1024
 const windowHeight = 768
 const windowFPS = 60
 
-var positionBufferObject, colourObject uint32
-var shaderProgram uint32
-var vertexArrayObject uint32
+/* Define buffer object indices */
+var positionBufferObject, colourObject, normalsBufferObject uint32
 
-// Position and view globals
-var angle_x, angle_x_inc float64
-var angle_y, angle_y_inc float64
-var angle_z, angle_z_inc float64
+var shaderProgram uint32        /* Identifier for the shader prgoram */
+var vertexArrayObject uint32            /* Vertex array (Containor) object. This is the index of the VAO that will be the container for
+					   our buffer objects */
 
-var camera_x, camera_y, camera_z float64
+var colourmode objects.ColorMode    /* Index of a uniform to switch the colour mode in the vertex shader
+					  I've included this to show you how to pass in an unsigned integer into
+					  your vertex shader. */
 
-var scale float32 = 1.0
+/* Position and view globals */
+var angle_x, angle_inc_x, x, scale, z, y float32
+var angle_y, angle_inc_y, angle_z, angle_inc_z float32
+
+var aspect_ratio float32        // Aspect ratio of the window defined in the reshape callback
 
 // Uniforms
-var modelUniform, projectionUniform, cameraUniform int32
+var modelUniform, projectionUniform, viewUniform int32
+var colourmodeUniform int32
 
-var model, projection, camera mgl32.Mat4
+// Sphere
+var sphere *objects.Sphere
+var cube *objects.Cube
+
 
 // Define vertices for a cube in 12 triangles
 var vertexPositions = []float32{
-	-0.25, 0.25, -0.25, 1.0,
-	-0.25, -0.25, -0.25, 1.0,
-	0.25, -0.25, -0.25, 1.0,
+	-0.25, 0.25, -0.25,
+	-0.25, -0.25, -0.25,
+	0.25, -0.25, -0.25,
 
-	0.25, -0.25, -0.25, 1.0,
-	0.25, 0.25, -0.25, 1.0,
-	-0.25, 0.25, -0.25, 1.0,
+	0.25, -0.25, -0.25,
+	0.25, 0.25, -0.25,
+	-0.25, 0.25, -0.25,
 
-	0.25, -0.25, -0.25, 1.0,
-	0.25, -0.25, 0.25, 1.0,
-	0.25, 0.25, -0.25, 1.0,
+	0.25, -0.25, -0.25,
+	0.25, -0.25, 0.25,
+	0.25, 0.25, -0.25,
 
-	0.25, -0.25, 0.25, 1.0,
-	0.25, 0.25, 0.25, 1.0,
-	0.25, 0.25, -0.25, 1.0,
+	0.25, -0.25, 0.25,
+	0.25, 0.25, 0.25,
+	0.25, 0.25, -0.25,
 
-	0.25, -0.25, 0.25, 1.0,
-	-0.25, -0.25, 0.25, 1.0,
-	0.25, 0.25, 0.25, 1.0,
+	0.25, -0.25, 0.25,
+	-0.25, -0.25, 0.25,
+	0.25, 0.25, 0.25,
 
-	-0.25, -0.25, 0.25, 1.0,
-	-0.25, 0.25, 0.25, 1.0,
-	0.25, 0.25, 0.25, 1.0,
+	-0.25, -0.25, 0.25,
+	-0.25, 0.25, 0.25,
+	0.25, 0.25, 0.25,
 
-	-0.25, -0.25, 0.25, 1.0,
-	-0.25, -0.25, -0.25, 1.0,
-	-0.25, 0.25, 0.25, 1.0,
+	-0.25, -0.25, 0.25,
+	-0.25, -0.25, -0.25,
+	-0.25, 0.25, 0.25,
 
-	-0.25, -0.25, -0.25, 1.0,
-	-0.25, 0.25, -0.25, 1.0,
-	-0.25, 0.25, 0.25, 1.0,
+	-0.25, -0.25, -0.25,
+	-0.25, 0.25, -0.25,
+	-0.25, 0.25, 0.25,
 
-	-0.25, -0.25, 0.25, 1.0,
-	0.25, -0.25, 0.25, 1.0,
-	0.25, -0.25, -0.25, 1.0,
+	-0.25, -0.25, 0.25,
+	0.25, -0.25, 0.25,
+	0.25, -0.25, -0.25,
 
-	0.25, -0.25, -0.25, 1.0,
-	-0.25, -0.25, -0.25, 1.0,
-	-0.25, -0.25, 0.25, 1.0,
+	0.25, -0.25, -0.25,
+	-0.25, -0.25, -0.25,
+	-0.25, -0.25, 0.25,
 
-	-0.25, 0.25, -0.25, 1.0,
-	0.25, 0.25, -0.25, 1.0,
-	0.25, 0.25, 0.25, 1.0,
+	-0.25, 0.25, -0.25,
+	0.25, 0.25, -0.25,
+	0.25, 0.25, 0.25,
 
-	0.25, 0.25, 0.25, 1.0,
-	-0.25, 0.25, 0.25, 1.0,
-	-0.25, 0.25, -0.25, 1.0,
+	0.25, 0.25, 0.25,
+	-0.25, 0.25, 0.25,
+	-0.25, 0.25, -0.25,
 }
 
 // Define an array of colours
-var vertexColours = []float32 {
+var vertexColours = []float32{
 	0.0, 0.0, 1.0, 1.0,
 	0.0, 0.0, 1.0, 1.0,
 	0.0, 0.0, 1.0, 1.0,
@@ -125,6 +135,46 @@ var vertexColours = []float32 {
 	0.0, 1.0, 1.0, 1.0,
 	0.0, 1.0, 1.0, 1.0,
 	0.0, 1.0, 1.0, 1.0,
+}
+
+/* Manually specified normals for our cube */
+var normals = []float32{
+	0, 0, -1,
+	0, 0, -1,
+	0, 0, -1,
+	0, 0, -1,
+	0, 0, -1,
+	0, 0, -1,
+	1, 0, 0,
+	1, 0, 0,
+	1, 0, 0,
+	1, 0, 0,
+	1, 0, 0,
+	1, 0, 0,
+	0, 0, 1,
+	0, 0, 1,
+	0, 0, 1,
+	0, 0, 1,
+	0, 0, 1,
+	0, 0, 1,
+	-1, 0, 0,
+	-1, 0, 0,
+	-1, 0, 0,
+	-1, 0, 0,
+	-1, 0, 0,
+	-1, 0, 0,
+	0, -1, 0,
+	0, -1, 0,
+	0, -1, 0,
+	0, -1, 0,
+	0, -1, 0,
+	0, -1, 0,
+	0, 1, 0,
+	0, 1, 0,
+	0, 1, 0,
+	0, 1, 0,
+	0, 1, 0,
+	0, 1, 0,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -132,7 +182,7 @@ var vertexColours = []float32 {
 /////////////////////////////////////////////////////////////////////////////////////
 
 // This function is called by go as soon as this class is opened
-func init () {
+func init() {
 	// Locks the Execution in the main Thread as OpenGL is not thread Safe
 	runtime.LockOSThread()
 }
@@ -140,7 +190,7 @@ func init () {
 // Entry point of program
 func main() {
 	// Creates the Window Wrapper
-	glw := wrapper.NewWrapper(windowWidth, windowHeight, "Hello Graphics World")
+	glw := wrapper.NewWrapper(windowWidth, windowHeight, "Lab2: Hello 3D")
 	glw.SetFPS(windowFPS)
 
 	// Creates the Window
@@ -168,25 +218,21 @@ func main() {
 // @param wrapper (*wrapper.Glw) the window wrapper
 //
 func InitApp(glw *wrapper.Glw) {
-	// Initializes the X angles
-	angle_x = 0.0;
-	angle_x_inc = 0.0;
-
-	// Initializes the Y angles
-	angle_y = 0.0;
-	angle_y_inc = 0.1;
-
-	// Initializes the Z angles
-	angle_z = 0;
-	angle_z_inc = 0.0;
-
-	// Initializes the Camera angles
-	camera_x = 0.1
-	camera_y = 0.1
-	camera_z = 3.5
-
-	// Initializes a model in the start position
-	model = mgl32.Ident4()
+	/* Set the object transformation controls to their initial values */
+	x = 0.05;
+	y = 0;
+	z = 0;
+	angle_x = 0
+	angle_y = 0
+	angle_z = 0
+	angle_inc_x = 0
+	angle_inc_y = 0
+	angle_inc_z = 0
+	scale = 1.0;
+	aspect_ratio = 1.3333
+	colourmode = objects.COLOR_SOLID
+	var numLats uint32 = 20        // Number of latitudes in our sphere
+	var numLongs uint32 = 20        // Number of longitudes in our sphere
 
 	// Generate index (name) for one vertex array object
 	gl.GenVertexArrays(1, &vertexArrayObject);
@@ -194,17 +240,14 @@ func InitApp(glw *wrapper.Glw) {
 	// Create the vertex array object and make it current
 	gl.BindVertexArray(vertexArrayObject);
 
-	// Create a vertex buffer object to store vertices
-	gl.GenBuffers(1, &positionBufferObject);
-	gl.BindBuffer(gl.ARRAY_BUFFER, positionBufferObject);
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertexPositions) * 4, gl.Ptr(vertexPositions), gl.STATIC_DRAW);
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0);
 
-	// Create a vertex buffer object to store vertex colours
-	gl.GenBuffers(1, &colourObject);
-	gl.BindBuffer(gl.ARRAY_BUFFER, colourObject);
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertexColours) * 4, gl.Ptr(vertexColours), gl.STATIC_DRAW);
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0);
+	// Create the Cube Object
+	cube = objects.NewCube(&vertexPositions, &vertexColours, &normals)
+	cube.MakeVBO()
+
+	// create the sphere object
+	sphere = objects.NewSphere(numLats, numLongs);
+	sphere.MakeSphereVBO()
 
 	// Creates the Shader Program
 	var err error; shaderProgram, err = wrapper.LoadShader("./shaders/basic.vert", "./shaders/basic.frag")
@@ -216,15 +259,9 @@ func InitApp(glw *wrapper.Glw) {
 
 	// Define uniforms to send to vertex shader
 	modelUniform = gl.GetUniformLocation(shaderProgram, gl.Str("model\x00"));
-	projectionUniform = gl.GetUniformLocation(shaderProgram, gl.Str("projection\x00"))
-	cameraUniform = gl.GetUniformLocation(shaderProgram, gl.Str("camera\x00"))
-
-	// Sets the Initial Projection Position
-	projection = mgl32.Perspective(mgl32.DegToRad(45.0), float32(windowWidth)/windowHeight, 0.1, 10.0)
-
-	// Sets the Initial Camera position
-	cameraEye := mgl32.Vec3{float32(camera_x), float32(camera_y), float32(camera_z)}
-	camera = mgl32.LookAtV(cameraEye, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
+	colourmodeUniform = gl.GetUniformLocation(shaderProgram, gl.Str("colourmode\x00"));
+	viewUniform = gl.GetUniformLocation(shaderProgram, gl.Str("view\x00"));
+	projectionUniform = gl.GetUniformLocation(shaderProgram, gl.Str("projection\x00"));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -235,75 +272,65 @@ func InitApp(glw *wrapper.Glw) {
 // Draw Loop Function
 // This function gets called on every update.
 //
-func drawLoop (glw *wrapper.Glw) {
+func drawLoop(glw *wrapper.Glw) {
 	// Sets the Clear Color (Background Color)
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
 	// Clears the Window
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
+	// Enables Depth
+	gl.Enable(gl.DEPTH_TEST)
+
 	// Sets the Shader program to Use
 	gl.UseProgram(shaderProgram)
 
-	gl.BindBuffer(gl.ARRAY_BUFFER, positionBufferObject);
-	gl.EnableVertexAttribArray(0);
+	// Define the model transformations for the cube
+	cube.ResetModel()
+	cube.Translate(x + 0.5, y, z)
+	cube.Scale(scale, scale, scale) //scale equally in all axis
+	cube.Rotate(-angle_x, mgl32.Vec3{1, 0, 0}) //rotating in clockwise direction around x-axis
+	cube.Rotate(-angle_y, mgl32.Vec3{0, 1, 0}) //rotating in clockwise direction around y-axis
+	cube.Rotate(-angle_z, mgl32.Vec3{0, 0, 1}) //rotating in clockwise direction around z-axis
 
-	// glVertexAttribPointer(index, size, type, normalised, stride, pointer)
-	// index relates to the layout qualifier in the vertex shader and in
-	// glEnableVertexAttribArray() and glDisableVertexAttribArray()
-	gl.VertexAttribPointer(0, 4, gl.FLOAT, false, 0, nil);
+	// Define the model transformations for our sphere
+	sphere.ResetModel()
+	sphere.Translate(-x - 0.5, 0, 0)
+	sphere.Scale(scale / 3.0, scale / 3.0, scale / 3.0) //scale equally in all axis
+	sphere.Rotate(-angle_x, mgl32.Vec3{1, 0, 0}) //rotating in clockwise direction around x-axis
+	sphere.Rotate(-angle_y, mgl32.Vec3{0, 1, 0}) //rotating in clockwise direction around y-axis
+	sphere.Rotate(-angle_z, mgl32.Vec3{0, 0, 1}) //rotating in clockwise direction around z-axis
 
-	gl.BindBuffer(gl.ARRAY_BUFFER, colourObject);
-	gl.EnableVertexAttribArray(1);
+	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+	var Projection mgl32.Mat4 = mgl32.Perspective(30.0, aspect_ratio, 0.1, 100.0)
 
-	// glVertexAttribPointer(index, size, type, normalised, stride, pointer)
-	// index relates to the layout qualifier in the vertex shader and in
-	// glEnableVertexAttribArray() and glDisableVertexAttribArray()
-	gl.VertexAttribPointer(1, 4, gl.FLOAT, false, 0, nil);
+	// Camera matrix
+	var View mgl32.Mat4 = mgl32.LookAtV(
+		mgl32.Vec3{0, 0, 4}, // Camera is at (0,0,4), in World Space
+		mgl32.Vec3{0, 0, 0}, // and looks at the origin
+		mgl32.Vec3{0, 1, 0}, // Head is up (set to 0,-1,0 to look upside-down)
+	);
 
-	// Rotates the model
-	modelX := mgl32.HomogRotate3D(float32(angle_y), mgl32.Vec3{1, 0, 0})
-	modelY := mgl32.HomogRotate3D(float32(angle_x), mgl32.Vec3{0, 1, 0})
-	modelZ := mgl32.HomogRotate3D(float32(angle_z), mgl32.Vec3{0, 0, 1})
-	modelScale := mgl32.Scale3D(scale, scale, scale)
-
-	// Multiplies both cubes to apply both rotations
-	model = modelX.Mul4(modelY).Mul4(modelZ).Mul4(modelScale)
-
-	// Send our transformations to the currently bound shader
-	gl.UniformMatrix4fv(projectionUniform, 1, false, &projection[0])
-	gl.UniformMatrix4fv(cameraUniform, 1, false, &camera[0])
-	gl.UniformMatrix4fv(modelUniform, 1, false, &model[0])
+	// Send our uniforms variables to the currently bound shader,
+	gl.Uniform1ui(colourmodeUniform, uint32(colourmode))
+	gl.UniformMatrix4fv(viewUniform, 1, false, &View[0])
+	gl.UniformMatrix4fv(projectionUniform, 1, false, &Projection[0])
 
 	// Draws the Cube
-	gl.DrawArrays(gl.TRIANGLES, 0, 36)
+	gl.UniformMatrix4fv(modelUniform, 1, false, &cube.Model[0])
+	cube.Draw()
 
-	// A bunch more cubes
-	modelOne := model.Mul4(mgl32.Translate3D(0.5, 0.0, 0.0))
-	gl.UniformMatrix4fv(modelUniform, 1, false, &modelOne[0])
-	gl.DrawArrays(gl.TRIANGLES, 0, 36)
-
-	modelTwo := model.Mul4(mgl32.Translate3D(0.0, 0.0, 0.5))
-	gl.UniformMatrix4fv(modelUniform, 1, false, &modelTwo[0])
-	gl.DrawArrays(gl.TRIANGLES, 0, 36)
-
-	modelThree := model.Mul4(mgl32.Translate3D(-0.5, 0.0, 0.0))
-	gl.UniformMatrix4fv(modelUniform, 1, false, &modelThree[0])
-	gl.DrawArrays(gl.TRIANGLES, 0, 36)
-
-	modelFour := model.Mul4(mgl32.Translate3D(0.0, 0.0, -0.5))
-	gl.UniformMatrix4fv(modelUniform, 1, false, &modelFour[0])
-	gl.DrawArrays(gl.TRIANGLES, 0, 36)
+	// Draw our sphere
+	gl.UniformMatrix4fv(modelUniform, 1, false, &sphere.Model[0])
+	sphere.DrawSphere()
 
 	gl.DisableVertexAttribArray(0);
+	gl.UseProgram(0);
 
-	// Disables the Shaders
-	gl.UseProgram(0)
-
-	// Modify our animation variables
-	angle_x += angle_x_inc;
-	angle_y += angle_y_inc;
-	angle_z += angle_z_inc;
+	/* Modify our animation variables */
+	angle_x += angle_inc_x;
+	angle_y += angle_inc_y;
+	angle_z += angle_inc_z;
 }
 
 //
@@ -316,14 +343,11 @@ func drawLoop (glw *wrapper.Glw) {
 // @param action (glfw.Action) the state of the key
 // @param mods (glfw.ModifierKey) the pressed modified keys.
 //
-func keyCallback (window *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+func keyCallback(window *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	// React only if the key was just pressed
 	if action != glfw.Press {
 		return;
 	}
-
-	// Sets the camera as not moved
-	cameraMoved := false
 
 	switch key {
 	// If the Key Excape is pressed, it closes the App
@@ -333,79 +357,84 @@ func keyCallback (window *glfw.Window, key glfw.Key, scancode int, action glfw.A
 		}
 		break
 
-	// If the Key W is pressed, it rotates up
-	case glfw.KeyW:
-	case glfw.KeyUp:
-		angle_y_inc += 0.1
-		break
-
-	// If the Key Q is pressed, it rotates down
-	case glfw.KeyS:
-	case glfw.KeyDown:
-		angle_y_inc -= 0.1
-		break
-
-	// If the Key A is pressed, it rotates to the Left
-	case glfw.KeyA:
-	case glfw.KeyLeft:
-		angle_x_inc += 0.1
-		break
-
-	// If the Key D is pressed, it rotates to the Right
-	case glfw.KeyD:
-	case glfw.KeyRight:
-		angle_x_inc -= 0.1
-		break
-
-	// If the Key Q is pressed, it rotates to the Back
 	case glfw.KeyQ:
-		angle_x_inc -= 0.1
+		angle_inc_x += 0.05
 		break
 
-	// If the Key E is pressed, it rotates to the Front
+	case glfw.KeyW:
+		angle_inc_x -= 0.05
+		break
+
 	case glfw.KeyE:
-		angle_x_inc += 0.1
+		angle_inc_y += 0.05
 		break
 
-	// If the Key Z is pressed, it Scales Out
+	case glfw.KeyR:
+		angle_inc_y -= 0.05
+		break
+
+	case glfw.KeyT:
+		angle_inc_z -= 0.05
+		break
+
+	case glfw.KeyY:
+		angle_inc_z += 0.05
+		break
+
+	case glfw.KeyA:
+		scale += 0.02
+		break
+
+	case glfw.KeyS:
+		scale -= 0.02
+		break
+
 	case glfw.KeyZ:
-		scale += 0.1
+		x -= 0.05
 		break
 
-	// If the Key X is pressed, it Scales In
 	case glfw.KeyX:
-		scale -= 0.1
+		x += 0.05
 		break
 
-	// If the Key C is pressed, it Moves Camera Up
 	case glfw.KeyC:
-		camera_y -= 0.1
-		cameraMoved = true
+		y -= 0.05
 		break
 
-	// If the Key V is pressed, it Moves Camera Down
 	case glfw.KeyV:
-		camera_y += 0.1
-		cameraMoved = true
+		y += 0.05
 		break
 
-	// If the Key B is pressed, it Moves Camera to the Back
 	case glfw.KeyB:
-		camera_z -= 0.1
-		cameraMoved = true
+		z -= 0.05
 		break
 
-	// If the Key N is pressed, it Moves Camera to the Front
 	case glfw.KeyN:
-		camera_z += 0.1
-		cameraMoved = true
+		z += 0.05
 		break
-	}
 
-	if cameraMoved {
-		// Aplies the camera movements
-		cameraEye := mgl32.Vec3{float32(camera_x), float32(camera_y), float32(camera_z)}
-		camera = mgl32.LookAtV(cameraEye, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
+	case glfw.KeyM:
+		if colourmode == 1 {
+			colourmode = 0
+		} else {
+			colourmode = 1
+		}
+		fmt.Printf("Colour Mode: %s \n", colourmode)
+		break
+
+	// Cycle between drawing vertices, mesh and filled polygons
+	case glfw.KeyK:
+		sphere.DrawMode ++;
+		if sphere.DrawMode > 2 {
+			sphere.DrawMode = 0
+		}
+		break
+
+	case glfw.KeyL:
+		cube.DrawMode ++;
+		if cube.DrawMode > 2 {
+			cube.DrawMode = 0
+		}
 	}
 }
 
@@ -417,6 +446,7 @@ func keyCallback (window *glfw.Window, key glfw.Key, scancode int, action glfw.A
 // @param width (int) the width of the window
 // @param height (int) the height of the window
 //
-func reshape (window *glfw.Window, width, height int) {
-	gl.Viewport(0, 0, int32(width), int32(height))
+func reshape(window *glfw.Window, width, height int) {
+	gl.Viewport(0, 0, int32(width), int32(height));
+	aspect_ratio = (float32(width) / 640.0 * 4.0) / (float32(height) / 480.0 * 3.0);
 }
