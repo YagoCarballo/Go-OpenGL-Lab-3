@@ -130,10 +130,10 @@ func (glw *Glw) Terminate () {
 // Sets the openGL version to the window
 //
 func setOpenGlVersion() {
-	glfw.WindowHint(glfw.Samples, 4)
-	glfw.WindowHint(glfw.ContextVersionMajor, 3)
+	glfw.WindowHint(glfw.Samples, 4) // Anti Aliasing (16 for nice Screenshots)
+	glfw.WindowHint(glfw.ContextVersionMajor, 3) // Mac will use the latest available, even if 3.3 is selected
 	glfw.WindowHint(glfw.ContextVersionMinor, 3)
-	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)    // Necessary for OS X
+	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)    // Necessary for OS X (This removes any deprecated API in 4.1)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile) // Necessary for OS X
 	glfw.WindowHint(glfw.OpenGLDebugContext, glfw.False)
 

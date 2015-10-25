@@ -198,23 +198,23 @@ func (sphere *Sphere) DrawSphere() {
 		gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, sphere.elementBuffer)
 
 		/* Draw the north pole regions as a triangle  */
-		gl.DrawElements(gl.TRIANGLE_STRIP, int32(sphere.numLongs + 1000), gl.UNSIGNED_INT, nil)
+		gl.DrawElements(gl.TRIANGLE_FAN, int32(sphere.numLongs + 2), gl.UNSIGNED_INT, nil)
 
 		/* Calculate offsets into the indexed array. Note that we multiply offsets by 4
 		   because it is a memory offset the indices are type GLuint which is 4-bytes */
-		var lat_offset_jump uint32 = uint32((sphere.numLongs * 2) + 2)
-		var lat_offset_start uint32 = uint32(sphere.numLongs + 2)
-		var lat_offset_current uint32 = lat_offset_start * 4
+		var lat_offset_jump int = int((sphere.numLongs * 2) + 2)
+		var lat_offset_start int = int(sphere.numLongs + 2)
+		var lat_offset_current int = lat_offset_start * 4
 
 		var i uint32
 
 		/* Draw the triangle strips of latitudes */
 		for i = 0; i < sphere.numLats - 2; i++ {
-			gl.DrawElements(gl.TRIANGLE_STRIP, int32(sphere.numLongs * 2 + 1000), gl.UNSIGNED_INT, gl.Ptr(&lat_offset_current))
+			gl.DrawElements(gl.TRIANGLE_STRIP, int32(sphere.numLongs * 2 + 2), gl.UNSIGNED_INT, gl.PtrOffset(lat_offset_current))
 			lat_offset_current += (lat_offset_jump * 4)
 		}
 		/* Draw the south pole as a triangle fan */
-		gl.DrawElements(gl.TRIANGLE_STRIP, int32(sphere.numLongs + 1000), gl.UNSIGNED_INT, gl.Ptr(&lat_offset_current))
+		gl.DrawElements(gl.TRIANGLE_FAN, int32(sphere.numLongs + 2), gl.UNSIGNED_INT, gl.PtrOffset(lat_offset_current))
 	}
 }
 
