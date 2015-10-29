@@ -190,7 +190,7 @@ func init() {
 // Entry point of program
 func main() {
 	// Creates the Window Wrapper
-	glw := wrapper.NewWrapper(windowWidth, windowHeight, "Lab2: Hello 3D")
+	glw := wrapper.NewWrapper(windowWidth, windowHeight, "Lab 3: Lights")
 	glw.SetFPS(windowFPS)
 
 	// Creates the Window

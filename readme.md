@@ -1,3 +1,5 @@
+![Alt text](./preview.png?raw=true "Preview")
+
 ## Build the Project
 
 ### Mac & Linux
